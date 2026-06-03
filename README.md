@@ -1,1 +1,1 @@
-\*\* Just a shooter game
+# Just a shooter game
