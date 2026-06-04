@@ -9,13 +9,14 @@ WIDTH = 800
 HEIGHT = int(WIDTH * 0.8)
 
 GRAVITY = 0.75
+TILE_SIZE = 40
 
 RED = (255, 0, 0)
 
 WINDOW = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Shooter Game")
 
-clock = pygame.time.Clock()
+clock = pygame.time.Clock() 
 FPS = 60
 
 moving_left = False
@@ -205,14 +206,62 @@ class Grenade(pygame.sprite.Sprite):
     self.rect.x += dx
     self.rect.y += dy 
     
+    self.timer -= 1
+    if self.timer <= 0:
+      self.kill()
+      explosion = Explosion(self.rect.x, self.rect.y, 0.5)
+      Explosion_group.add(explosion)
+      
+      if abs(self.rect.centerx - player.rect.centerx) < TILE_SIZE * 2 and \
+      abs(self.rect.centery - player.rect.centery) < TILE_SIZE * 2:
+        player.health -= 50
+        
+      for enemy in enemy_group:
+        if abs(self.rect.centerx - enemy.rect.centerx) < TILE_SIZE * 2 and \
+        abs(self.rect.centery - enemy.rect.centery) < TILE_SIZE * 2:
+          enemy.health -= 50
+      
+
+class Explosion(pygame.sprite.Sprite):
+  def __init__(self, x, y, scale):
+    pygame.sprite.Sprite.__init__(self)
+    self.images = []
+    for num in range(1,6):
+      img = pygame.image.load(f'assets/img/explosion/exp{num}.png').convert_alpha()
+      img = pygame.transform.scale(img, (int(img.get_width() * scale), int(img.get_height() * scale)))
+      self.images.append(img)
+    self.frame_index = 0
+    self.image = self.images[self.frame_index]
+    self.rect = self.image.get_rect()  
+    self.rect.center = (x,y)
+    self.counter = 0 
+    
+    
+  def update(self):
+    EXPLOSION_SPEED = 4
+    
+    self.counter += 1
+    if self.counter >= EXPLOSION_SPEED:
+      self.counter = 0
+      self.frame_index += 1
+      if self.frame_index >= len(self.images):
+        self.kill()
+      else:
+        self.image = self.images[self.frame_index]
     
   
+
+
+    
+enemy_group = pygame.sprite.Group()
 bullet_group = pygame.sprite.Group()    
 grenade_group = pygame.sprite.Group()    
-
+Explosion_group = pygame.sprite.Group()
   
 player = Soldier(200, 200, 'player', 3, 5, 20, 5) 
 enemy = Soldier(400, 200, "enemy",3, 5, 3, 0)
+
+enemy_group.add(enemy)
 
 
 
@@ -225,13 +274,16 @@ while run:
   
   player.update()
   player.draw()
-  enemy.update()
-  enemy.draw()
+  for enemy in enemy_group:
+    enemy.update()
+    enemy.draw()
   
   bullet_group.update()
   grenade_group.update()
+  Explosion_group.update()
   bullet_group.draw(WINDOW)
   grenade_group.draw(WINDOW)
+  Explosion_group.draw(WINDOW)
   
 
   
