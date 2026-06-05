@@ -1,4 +1,5 @@
 import pygame
+from pygame import mixer
 import os
 import random
 import csv
@@ -26,6 +27,7 @@ RED = (255, 0, 0)
 WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
+PINK = (235, 65, 54) 
 
 WINDOW = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Shooter Game")
@@ -38,6 +40,17 @@ moving_right = False
 shoot = False
 grenade = False
 grenade_thrown = False
+
+
+
+
+jump_fx = pygame.mixer.Sound("assets/audio/jump.wav")
+jump_fx.set_volume(0.05)
+shot_fx = pygame.mixer.Sound("assets/audio/shot.wav")
+shot_fx.set_volume(0.05)
+grenade_fx = pygame.mixer.Sound("assets/audio/grenade.wav")
+grenade_fx.set_volume(0.05)
+
 
 
 pine1_img = pygame.image.load("assets/img/Background/pine1.png").convert_alpha()
@@ -529,6 +542,7 @@ class Grenade(pygame.sprite.Sprite):
     self.timer -= 1
     if self.timer <= 0:
       self.kill()
+      grenade_fx.play()
       explosion = Explosion(self.rect.x, self.rect.y, 0.5)
       Explosion_group.add(explosion)
       
@@ -570,8 +584,28 @@ class Explosion(pygame.sprite.Sprite):
         self.kill()
       else:
         self.image = self.images[self.frame_index]
-    
+
+
+class ScreenFade():
+  def __init__(self, direction, colour, speed):
+    self.direction = direction
+    self.colour = colour
+    self.speed = speed
+    self.fade_counter = 0
   
+  def fade(self):
+    fade_complete = False
+    self.fade_counter += self.speed
+    
+    if self.direction == 2:
+      pygame.draw.rect(WINDOW, self.colour, (0,0, WIDTH, 0 + self.fade_counter))
+      if self.fade_counter >= WIDTH:
+        fade_complete = True
+    
+    return fade_complete
+  
+  
+death_fade = ScreenFade(2, PINK, 4)
 
 start_button = Button(WIDTH // 2 - 130, HEIGHT // 2 - 150, start_img, 1)
 exit_button = Button(WIDTH // 2 - 110, HEIGHT // 2 + 50, exit_img, 1)
@@ -678,19 +712,20 @@ while run:
         player.update_action(0)
     
     else:
-      
-      if restart_button.draw(WINDOW):
-        bg_scroll = 0
-        world_data = reset_level()
-        
-        with open(f"level{level}_data.csv", newline='') as csvfile:
-          reader = csv.reader(csvfile, delimiter=',') 
-          for x, row in enumerate(reader):
-            for y, tile in enumerate(row):
-              world_data[x][y] = int(tile)
-              
-        world = World()
-        player, health_bar = world.process_data(world_data)
+      screen_scroll = 0
+      if death_fade.fade():
+        if restart_button.draw(WINDOW):
+          bg_scroll = 0
+          world_data = reset_level()
+          
+          with open(f"level{level}_data.csv", newline='') as csvfile:
+            reader = csv.reader(csvfile, delimiter=',')
+            for x, row in enumerate(reader):
+              for y, tile in enumerate(row):
+                world_data[x][y] = int(tile)
+                
+          world = World()
+          player, health_bar = world.process_data(world_data)
     
     screen_scroll, level_complete= player.move(moving_left, moving_right) 
     bg_scroll -= screen_scroll
@@ -727,12 +762,14 @@ while run:
         moving_right = True
       if event.key == pygame.K_w and player.alive:
         player.jump = True
+        jump_fx.play()
       if event.key == pygame.K_SPACE:
         shoot = True
+        shot_fx.play()
       if event.key == pygame.K_q:
         grenade = True
         
-    # release the key
+        
     if event.type == pygame.KEYUP:
       if event.key == pygame.K_a:
         moving_left = False
@@ -743,10 +780,9 @@ while run:
       if event.key == pygame.K_q:
         grenade = False
         grenade_thrown = False
-    
+  
   pygame.display.update()
     
 pygame.quit() 
-
 
 
