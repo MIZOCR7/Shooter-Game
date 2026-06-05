@@ -21,6 +21,7 @@ screen_scroll = 0
 bg_scroll = 0
 level = 1
 start_game = False 
+start_intro = False
 MAX_LEVELS = 3
 
 RED = (255, 0, 0)
@@ -596,7 +597,11 @@ class ScreenFade():
   def fade(self):
     fade_complete = False
     self.fade_counter += self.speed
-    
+    if self.direction == 1:
+      pygame.draw.rect(WINDOW, self.colour, (0 - self.fade_counter,0, WIDTH // 2, HEIGHT))
+      pygame.draw.rect(WINDOW, self.colour, (WIDTH // 2 + self.fade_counter, 0, WIDTH, HEIGHT))
+      pygame.draw.rect(WINDOW, self.colour, (0, 0 - self.fade_counter, WIDTH, HEIGHT // 2))
+      pygame.draw.rect(WINDOW, self.colour, (0, HEIGHT //2 + self.fade_counter, WIDTH, HEIGHT))
     if self.direction == 2:
       pygame.draw.rect(WINDOW, self.colour, (0,0, WIDTH, 0 + self.fade_counter))
       if self.fade_counter >= WIDTH:
@@ -604,7 +609,8 @@ class ScreenFade():
     
     return fade_complete
   
-  
+
+intro_fade = ScreenFade(1, BLACK, 4)
 death_fade = ScreenFade(2, PINK, 4)
 
 start_button = Button(WIDTH // 2 - 130, HEIGHT // 2 - 150, start_img, 1)
@@ -649,6 +655,7 @@ while run:
     WINDOW.fill(BG)
     if start_button.draw(WINDOW):
       start_game = True
+      start_intro = True
     if exit_button.draw(WINDOW):
       run = False
   
@@ -693,6 +700,10 @@ while run:
     water_group.draw(WINDOW)
     exit_group.draw(WINDOW)
     
+    if start_intro == True:
+      if intro_fade.fade():
+        start_intro = False
+        intro_fade.fade_counter = 0
 
     
     if player.alive: 
@@ -715,6 +726,8 @@ while run:
       screen_scroll = 0
       if death_fade.fade():
         if restart_button.draw(WINDOW):
+          death_fade.fade_counter = 0
+          start_intro = True
           bg_scroll = 0
           world_data = reset_level()
           
@@ -731,6 +744,7 @@ while run:
     bg_scroll -= screen_scroll
     
     if level_complete:
+      start_intro = True
       level += 1
       bg_scroll = 0
       world_data = reset_level()
