@@ -1,5 +1,7 @@
 import pygame
 import os
+import random
+import csv
 
 pygame.init()
 
@@ -9,7 +11,11 @@ WIDTH = 800
 HEIGHT = int(WIDTH * 0.8)
 
 GRAVITY = 0.75
-TILE_SIZE = 40
+ROWS = 16
+COLS = 150
+TILE_SIZE = HEIGHT // ROWS 
+TILE_TYPES = 21 
+level = 1
 
 RED = (255, 0, 0)
 WHITE = (255, 255, 255)
@@ -27,6 +33,13 @@ moving_right = False
 shoot = False
 grenade = False
 grenade_thrown = False
+
+img_list = []
+for x in range(TILE_TYPES):
+  img = pygame.image.load(f'img/Tile/{x}.png') 
+  img = pygame.transform.scale(img, (TILE_SIZE, TILE_SIZE))
+  img_list.append(img)
+
 
 bullet_img = pygame.image.load("assets/img/icons/bullet.png").convert_alpha()
 grenade_img = pygame.image.load("assets/img/icons/grenade.png").convert_alpha()
@@ -74,6 +87,11 @@ class Soldier(pygame.sprite.Sprite):
     self.frame_index = 0  
     self.action = 0
     self.update_time = pygame.time.get_ticks()
+    
+    self.move_counter = 0
+    self.vision = pygame.Rect(0, 0, 150, 20)
+    self.idling = False
+    self.idling_counter = 0
     
     
     animation_types = ['idle', 'Run', 'Jump', "Death"] 
@@ -136,19 +154,43 @@ class Soldier(pygame.sprite.Sprite):
   def shoot(self):
     if self.shoot_cooldown == 0 and self.ammo > 0:  
       self.shoot_cooldown = 20
-      bullet = Bullet(self.rect.centerx + (0.6 * self.rect.size[0] * self.direction), self.rect.centery, self.direction)
+      bullet = Bullet(self.rect.centerx + (0.75 * self.rect.size[0] * self.direction), self.rect.centery, self.direction)
       bullet_group.add(bullet)
       self.ammo -= 1
   
   def ai(self):
     if self.alive and player.alive:
-      if self.direction == 1:
-        ai_moving_right = True
+      if self.idling == False and random.randint(1, 200) == 1:
+        self.update_action(0)
+        self.idling = True
+        self.idling_counter = 50
+      
+      if self.vision.colliderect(player.rect):
+        self.update_action(0)
+        self.shoot()
+      
       else:
-        ai_moving_right = False
-      ai_moving_left = not ai_moving_right
-      self.move(ai_moving_left, ai_moving_right)
-  
+        if self.idling == False:
+          if self.direction == 1:
+            ai_moving_right = True
+          else:
+            ai_moving_right = False
+          ai_moving_left = not ai_moving_right
+          self.move(ai_moving_left, ai_moving_right)
+          self.update_action(1) 
+          self.move_counter += 1
+          
+          self.vision.center = (self.rect.centerx + 75 * self.direction, self.rect.centery)
+          
+          
+          if self.move_counter > TILE_SIZE:
+            self.direction *= -1
+            self.move_counter *= -1
+        else:
+          self.idling_counter -= 1
+          if self.idling_counter == 0:
+            self.idling = False
+   
    
   def update_animation(self):
     ANIMATION_COOLDOWN = 100
@@ -179,6 +221,19 @@ class Soldier(pygame.sprite.Sprite):
   
   def draw(self):
     WINDOW.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
+ 
+
+class World():
+  def __init__(self):
+    self.obstacle_list = []
+    
+  def process_data(self, data):
+    for y, row in enumerate(data):
+      for x, tile in enumerate(row):
+        if tile >= 0:
+          pass
+          
+
     
 
 class ItemBox(pygame.sprite.Sprite):
@@ -338,12 +393,26 @@ item_box_group.add(item_box)
   
 player = Soldier(200, 200, 'player', 1.65, 5, 20, 5) 
 health_bar = HealthBar(10, 10, player.health, player.health)
-enemy = Soldier(400, 200, "enemy", 1.65, 5, 3, 0)
-enemy2 = Soldier(600, 200, "enemy", 1.65, 5, 3, 0) 
+enemy = Soldier(400, 200, "enemy", 1.65, 3, 100, 0)
+enemy2 = Soldier(600, 200, "enemy", 1.65, 3, 100, 0) 
 
 enemy_group.add(enemy) 
 enemy_group.add(enemy2) 
 
+
+world_data = []
+for row in range(ROWS):
+  r = [-1] * COLS
+  world_data.append(r)
+
+with open(f"level{level}_data.csv", newline='') as csvfile:
+  reader = csv.reader(csvfile, delimiter=',') 
+  for x, row in enumerate(reader):
+    for y, tile in enumerate(row):
+      world_data[x][y] = int(tile)
+      
+
+      
 
 
 
@@ -367,6 +436,7 @@ while run:
   player.update()
   player.draw()
   for enemy in enemy_group:
+    enemy.ai()
     enemy.update()
     enemy.draw()
   
