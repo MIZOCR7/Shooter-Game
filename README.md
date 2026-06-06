@@ -1,7 +1,6 @@
 # My Pygame 2D Shooter 🎮
 
-Hey! Welcome to my 2D shooter platformer game. I built this entirely in Python using the `pygame` library. It started as a fun project to learn game dev, and I ended up adding a lot of cool stuff to it.
-
+Hey! Welcome to my 2D shooter platformer game. I build this in Python using the `pygame` library.
 ## Features
 * **Custom Engine:** Built from scratch using Pygame.
 * **Smart(ish) Enemies:** They patrol around, actually know when to stop at edges so they don't fall off like idiots, and shoot when you get in their line of sight.
@@ -32,3 +31,4 @@ If you want to edit the levels, run `python level_editor_tut.py` and it will sav
 
 ---
 Feel free to mess around with the code, change the sprites, or build your own levels using the editor!
+Have Fun :) LOL *_*
