@@ -4,6 +4,7 @@ import os
 import random
 import csv
 
+
 pygame.init()
 
 BG = (144, 201, 120)
@@ -13,7 +14,7 @@ HEIGHT = int(WIDTH * 0.8)
 
 GRAVITY = 0.75 
 SCROLL_THRESH = 200
-ROWS = 16
+ROWS = 16 
 COLS = 150
 TILE_SIZE = HEIGHT // ROWS 
 TILE_TYPES = 21 
@@ -30,11 +31,12 @@ GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
 PINK = (235, 65, 54) 
 
+
 WINDOW = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Shooter Game")
 
 clock = pygame.time.Clock() 
-FPS = 60
+FPS = 60 
 
 moving_left = False
 moving_right = False
@@ -43,14 +45,27 @@ grenade = False
 grenade_thrown = False
 
 
+enemy_died_fx = pygame.mixer.Sound("sound_effects/elmahala.mp3")
+enemy_died_fx.set_volume(0.3)
 
+saw_player_fx = mixer.Sound('sound_effects/bydwr-ly.mp3')
+saw_player_fx.set_volume(0.5)
 
-jump_fx = pygame.mixer.Sound("assets/audio/jump.wav")
-jump_fx.set_volume(0.05)
-shot_fx = pygame.mixer.Sound("assets/audio/shot.wav")
-shot_fx.set_volume(0.05)
-grenade_fx = pygame.mixer.Sound("assets/audio/grenade.wav")
-grenade_fx.set_volume(0.05)
+no_ammo_fx = pygame.mixer.Sound("sound_effects/freesound_community-empty-gun-shot-6209.mp3")
+no_ammo_fx.set_volume(0.4)
+
+death_fx = pygame.mixer.Sound("sound_effects/mt-ytsh.mp3")
+death_fx.set_volume(0.8)
+
+win_fx = pygame.mixer.Sound("sound_effects/win.mp3")
+win_fx.set_volume(0.6)
+
+jump_fx = pygame.mixer.Sound("sound_effects/mac-quack.mp3")
+jump_fx.set_volume(0.2)
+shot_fx = pygame.mixer.Sound("sound_effects/gunshotjbudden.mp3")
+shot_fx.set_volume(0.5)
+grenade_fx = pygame.mixer.Sound("sound_effects/fart-with-reverb.mp3")
+grenade_fx.set_volume(0.5)
 
 
 
@@ -83,6 +98,7 @@ item_boxes = {
 }
 
 font = pygame.font.SysFont("Futura", 30)
+
 
 def draw_text(text, font, text_col, x, y):
   img = font.render(text, True, text_col)
@@ -175,6 +191,9 @@ class Soldier(pygame.sprite.Sprite):
     self.idling = False
     self.idling_counter = 0
     
+    self.saw_player = False
+    self.last_sound_time = 0
+    
     
     animation_types = ['idle', 'Run', 'Jump', "Death"] 
     for animation in animation_types:
@@ -251,6 +270,7 @@ class Soldier(pygame.sprite.Sprite):
     
     level_complete = False
     if pygame.sprite.spritecollide(self, exit_group, False):
+      win_fx.play()
       level_complete = True
     
     if self.rect.bottom > HEIGHT:
@@ -287,10 +307,18 @@ class Soldier(pygame.sprite.Sprite):
         self.idling_counter = 50
       
       if self.vision.colliderect(player.rect):
+        self.saw_player = True
         self.update_action(0)
         self.shoot()
+        
+        current_time = pygame.time.get_ticks()
+        if current_time - self.last_sound_time > 2000:
+          saw_player_fx.play()
+          self.last_sound_time = current_time
       
       else:
+        
+        self.saw_player = False
         if self.idling == False:
           if self.direction == 1:
             ai_moving_right = True
@@ -312,6 +340,8 @@ class Soldier(pygame.sprite.Sprite):
           if self.idling_counter == 0:
             self.idling = False
     
+       
+      
     self.rect.x += screen_scroll
    
   def update_animation(self):
@@ -332,17 +362,38 @@ class Soldier(pygame.sprite.Sprite):
       self.frame_index = 0
       self.update_time = pygame.time.get_ticks()
   
-  def check_alive(self):
-    if self.health <= 0:
+  def check_alive(self) :
+    if self.health <= 0 and self.alive:
       self.health = 0
       self.speed = 0
       self.alive = False
       self.update_action(3)
       
+      if self.character_type == 'enemy':
+        enemy_died_fx.play()
+      
+      if self.character_type == 'player':
+        death_fx.play()
+      
 
   
   def draw(self):
     WINDOW.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
+    
+    if self.character_type == "enemy" and self.alive and self.saw_player == True:
+      bubble_x = self.rect.centerx - 40
+      bubble_y = self.rect.top - 40
+      
+      pygame.draw.rect(WINDOW, WHITE, (bubble_x, bubble_y, 80, 30), border_radius=10)
+      
+      p1 = (bubble_x + 50, bubble_y + 30)
+      p2 = (bubble_x + 65, bubble_y + 30)
+      p3 = (bubble_x + 65, bubble_y + 40)
+      
+      pygame.draw.polygon(WINDOW, WHITE, [p1, p2, p3])
+      draw_text("Attack", font, BLACK, bubble_x + 5, bubble_y + 5)
+      
+      
  
 
 class World():
@@ -704,7 +755,7 @@ while run:
       if intro_fade.fade():
         start_intro = False
         intro_fade.fade_counter = 0
-
+    
     
     if player.alive: 
       if shoot:
@@ -714,6 +765,9 @@ while run:
         grenade_group.add(grenade)
         player.grenades -= 1
         grenade_thrown = True
+      
+      
+        
         
       if player.in_air:
         player.update_action(2)
@@ -726,6 +780,7 @@ while run:
       screen_scroll = 0
       if death_fade.fade():
         if restart_button.draw(WINDOW):
+          
           death_fade.fade_counter = 0
           start_intro = True
           bg_scroll = 0
@@ -777,13 +832,15 @@ while run:
       if event.key == pygame.K_w and player.alive:
         player.jump = True
         jump_fx.play()
-      if event.key == pygame.K_SPACE:
+      if event.key == pygame.K_SPACE and player.ammo > 0:
         shoot = True
         shot_fx.play()
+      elif event.key == pygame.K_SPACE and player.ammo == 0:
+        no_ammo_fx.play() 
       if event.key == pygame.K_q:
-        grenade = True
+        grenade = True 
         
-        
+      
     if event.type == pygame.KEYUP:
       if event.key == pygame.K_a:
         moving_left = False
