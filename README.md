@@ -17,3 +17,10 @@ If you want to mess with the code or make your own levels:
 ## Dev Notes / Behind the Scenes
 Getting this game to run as a single `.exe` file with PyInstaller was a bit of a nightmare because it kept losing the paths to the `img`, `sound_effects`, and `.csv` folders. If you look at the top of `main.py`, you'll see a little `sys._MEIPASS` trick I used to force the game to find its assets when running as an executable.If you want to edit the levels, run `python level_editor_tut.py` and it will save the layout directly to the CSV files which `main.py` reads on startup.---
 Feel free to mess around with the code, change the sprites, or build your own levels using the editor!Have Fun :) LOL *_*
+
+
+<img width="1007" height="839" alt="image" src="https://github.com/user-attachments/assets/9abb80f8-1079-49ce-8d87-aa205856da27" />
+<img width="999" height="841" alt="image" src="https://github.com/user-attachments/assets/b2fa49b7-0210-49b7-bce3-88d84c39d229" />
+<img width="1004" height="837" alt="image" src="https://github.com/user-attachments/assets/51c2c3b8-60a1-48a6-80df-84fa9ccb92b2" />
+
+
