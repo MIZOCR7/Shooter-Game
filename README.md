@@ -12,6 +12,12 @@ Just download the .exe from releases and it will work main.exe
 * **Shoot:** spacebar
 * **Grenade:** q
 
+## Why I built it
+I have built this game as one of the first detailed 2D games with classes and OOP which helped me to build all other pygame games
+
+## What used to build it
+I used pygame library a module from python to make it and I think it is working well and tile maker to add levels and tiles
+
 <img width="1007" height="839" alt="image" src="https://github.com/user-attachments/assets/9abb80f8-1079-49ce-8d87-aa205856da27" />
 <img width="999" height="841" alt="image" src="https://github.com/user-attachments/assets/b2fa49b7-0210-49b7-bce3-88d84c39d229" />
 <img width="1004" height="837" alt="image" src="https://github.com/user-attachments/assets/51c2c3b8-60a1-48a6-80df-84fa9ccb92b2" />
