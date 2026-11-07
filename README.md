@@ -2,8 +2,7 @@
 
 Hey!Welcome to my 2D shooter platformer game.I build this in Python using the `pygame` 
 with awesome sound effects and collosion with enemies and environment, this game is a practise for my python knowledge and enhancing my coding experience.
-The game has only 3 levels I can make more but it is just a Demo.
-While working on this game, I also got the chance to practise handling player movement, enemy interactions, collisions, and different game mechanics. I wanted to make the game feel more alive by adding sound effects and making the player interact with the environment. There are still many things I could add and improve, but for now, I think it is a good demo of what I have learned so far and a nice step in improving my Python skills.
+The game has only 3 levels I can make more but it is just a Demo, While working on this game, I also got the chance to practise handling player movement, enemy interactions, collisions, and different game mechanics. I wanted to make the game feel more alive by adding sound effects and making the player interact with the environment. There are still many things I could add and improve, but for now, I think it is a good demo of what I have learned so far and a nice step in improving my Python skills.
 **How To run**
 Just download the .exe from releases and it will work main.exe
 
